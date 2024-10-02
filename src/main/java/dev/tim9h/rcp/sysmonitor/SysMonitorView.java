@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.CompletableFuture;
 
 import org.apache.logging.log4j.Logger;
 
@@ -104,8 +103,7 @@ public class SysMonitorView implements CCard {
 		timer.scheduleAtFixedRate(new TimerTask() {
 			@Override
 			public void run() {
-				CompletableFuture.runAsync(() -> updateStats(service.getMemory(), service.getCpu(),
-						service.getNetworkTraffic(), gpuService.getGpu()));
+				updateStats(service.getMemory(), service.getCpu(), service.getNetworkTraffic(), gpuService.getGpu());
 			}
 		}, 0, 1000);
 

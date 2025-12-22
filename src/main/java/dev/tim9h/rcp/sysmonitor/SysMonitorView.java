@@ -10,8 +10,8 @@ import org.apache.logging.log4j.Logger;
 import com.google.inject.Inject;
 
 import dev.tim9h.rcp.logging.InjectLogger;
-import dev.tim9h.rcp.spi.CCard;
 import dev.tim9h.rcp.spi.Gravity;
+import dev.tim9h.rcp.spi.Plugin;
 import dev.tim9h.rcp.spi.Position;
 import dev.tim9h.rcp.sysmonitor.service.GpuMonitorService;
 import dev.tim9h.rcp.sysmonitor.service.GpuMonitorService.Gpu;
@@ -28,7 +28,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import oshi.util.FormatUtil;
 
-public class SysMonitorView implements CCard {
+public class SysMonitorView implements Plugin {
 
 	private static final String CSS_CLASS_SECONDARY = "secondary";
 

@@ -3,7 +3,7 @@ package dev.tim9h.rcp.sysmonitor.service;
 import com.google.inject.Inject;
 
 import dev.tim9h.rcp.settings.Settings;
-import dev.tim9h.rcp.sysmonitor.SysMonitorViewFactory;
+import dev.tim9h.rcp.sysmonitor.SysMonitorView;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor.TickType;
 import oshi.hardware.HardwareAbstractionLayer;
@@ -43,7 +43,7 @@ public class OshiService implements SysMonitorService {
 
 	@Override
 	public Traffic getNetworkTraffic() {
-		var i = hal.getNetworkIFs().get(settings.getInt(SysMonitorViewFactory.SETTING_NETWORK_IF).intValue());
+		var i = hal.getNetworkIFs().get(settings.getInt(SysMonitorView.SETTING_NETWORK_IF).intValue());
 		i.updateAttributes();
 		var traffic = new Traffic(i.getBytesSent() - bytesSent, i.getBytesRecv() - bytesRecv);
 		this.bytesSent = i.getBytesSent();

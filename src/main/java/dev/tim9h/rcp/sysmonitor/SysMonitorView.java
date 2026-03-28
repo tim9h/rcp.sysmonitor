@@ -1,6 +1,7 @@
 package dev.tim9h.rcp.sysmonitor;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -30,6 +31,8 @@ import oshi.util.FormatUtil;
 
 public class SysMonitorView implements Plugin {
 
+	public static final String SETTING_NETWORK_IF = "sysmonitor.networkif";
+
 	private static final String CSS_CLASS_SECONDARY = "secondary";
 
 	@InjectLogger
@@ -54,6 +57,11 @@ public class SysMonitorView implements Plugin {
 	@Override
 	public String getName() {
 		return "System Monitor";
+	}
+
+	@Override
+	public String getId() {
+		return "sysmonitor";
 	}
 
 	@Override
@@ -124,6 +132,11 @@ public class SysMonitorView implements Plugin {
 	@Override
 	public Gravity getGravity() {
 		return new Gravity(Position.MIDDLE);
+	}
+
+	@Override
+	public Map<String, String> getSettingsContributions() {
+		return Map.of(SETTING_NETWORK_IF, "0");
 	}
 
 }

@@ -15,14 +15,31 @@ public class NvidiaService implements GpuMonitorService {
 
 	@Override
 	public Gpu getGpu() {
+		Process process = null;
 		try {
-			var p = new ProcessBuilder("nvidia-smi", "--format=csv,noheader,nounits", "--query-gpu=utilization.gpu")
+			process = new ProcessBuilder("nvidia-smi", "--format=csv,noheader,nounits", "--query-gpu=utilization.gpu")
+					.redirectErrorStream(true)
 					.start();
-			var stdout = IOUtils.toString(p.getInputStream(), Charset.defaultCharset()).trim();
-			return new Gpu(Integer.parseInt(stdout));
+			try (var stdout = process.getInputStream()) {
+				var output = IOUtils.toString(stdout, Charset.defaultCharset()).trim();
+				var exitCode = process.waitFor();
+				if (exitCode != 0) {
+					logger.warn("nvidia-smi exited with code {}: {}", exitCode, output);
+					return new Gpu(-1);
+				}
+				return new Gpu(Integer.parseInt(output));
+			}
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			logger.error("Interrupted while reading GPU utilization", e);
+			return new Gpu(-1);
 		} catch (IOException e) {
 			logger.error("Unable to read GPU utilization", e);
 			return new Gpu(-1);
+		} finally {
+			if (process != null) {
+				process.destroy();
+			}
 		}
 	}
 

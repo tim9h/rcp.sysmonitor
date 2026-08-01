@@ -3,8 +3,9 @@ package dev.tim9h.rcp.sysmonitor;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.Logger;
 
@@ -54,6 +55,10 @@ public class SysMonitorView implements Plugin {
 
 	private Label lblGpuValue;
 
+	private GridPane pane;
+
+	private ScheduledExecutorService statsExecutor;
+
 	@Override
 	public String getName() {
 		return "System Monitor";
@@ -66,7 +71,11 @@ public class SysMonitorView implements Plugin {
 
 	@Override
 	public Optional<Node> getNode() throws IOException {
-		var pane = new GridPane();
+		if (pane != null) {
+			return Optional.of(pane);
+		}
+
+		pane = new GridPane();
 		pane.getStyleClass().add("ccCard");
 		var col = new ColumnConstraints();
 		col.setPercentWidth(23.3);
@@ -107,15 +116,24 @@ public class SysMonitorView implements Plugin {
 		pane.add(lblUploadValue, 3, 1);
 		pane.add(lblDownloadValue, 4, 1);
 
-		var timer = new Timer("sysStatsUpdater", true);
-		timer.scheduleAtFixedRate(new TimerTask() {
-			@Override
-			public void run() {
-				updateStats(service.getMemory(), service.getCpu(), service.getNetworkTraffic(), gpuService.getGpu());
-			}
-		}, 0, 1000);
+		startStatsUpdates();
 
 		return Optional.of(pane);
+	}
+
+	private void startStatsUpdates() {
+		if (statsExecutor != null && !statsExecutor.isShutdown()) {
+			return;
+		}
+
+		statsExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+			var thread = new Thread(r, "sysStatsUpdater");
+			thread.setDaemon(true);
+			return thread;
+		});
+		statsExecutor.scheduleAtFixedRate(() -> {
+			updateStats(service.getMemory(), service.getCpu(), service.getNetworkTraffic(), gpuService.getGpu());
+		}, 0, 1, TimeUnit.SECONDS);
 	}
 
 	private void updateStats(Memory memory, Cpu processor, Traffic traffic, Gpu gpu) {

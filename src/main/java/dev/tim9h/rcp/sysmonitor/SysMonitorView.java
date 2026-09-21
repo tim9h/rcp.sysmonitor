@@ -131,9 +131,8 @@ public class SysMonitorView implements Plugin {
 			thread.setDaemon(true);
 			return thread;
 		});
-		statsExecutor.scheduleAtFixedRate(() -> {
-			updateStats(service.getMemory(), service.getCpu(), service.getNetworkTraffic(), gpuService.getGpu());
-		}, 0, 1, TimeUnit.SECONDS);
+		statsExecutor.scheduleAtFixedRate(() -> updateStats(service.getMemory(), service.getCpu(),
+				service.getNetworkTraffic(), gpuService.getGpu()), 0, 1, TimeUnit.SECONDS);
 	}
 
 	private void updateStats(Memory memory, Cpu processor, Traffic traffic, Gpu gpu) {

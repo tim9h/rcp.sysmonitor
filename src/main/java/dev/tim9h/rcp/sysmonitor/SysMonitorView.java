@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.logging.log4j.Logger;
 
@@ -58,6 +59,8 @@ public class SysMonitorView implements Plugin {
 	private GridPane pane;
 
 	private ScheduledExecutorService statsExecutor;
+
+	private final AtomicBoolean shuttingDown = new AtomicBoolean();
 
 	@Override
 	public String getName() {
@@ -121,7 +124,11 @@ public class SysMonitorView implements Plugin {
 		return Optional.of(pane);
 	}
 
-	private void startStatsUpdates() {
+	private synchronized void startStatsUpdates() {
+		if (shuttingDown.get()) {
+			return;
+		}
+
 		if (statsExecutor != null && !statsExecutor.isShutdown()) {
 			return;
 		}
@@ -131,12 +138,25 @@ public class SysMonitorView implements Plugin {
 			thread.setDaemon(true);
 			return thread;
 		});
-		statsExecutor.scheduleAtFixedRate(() -> updateStats(service.getMemory(), service.getCpu(),
-				service.getNetworkTraffic(), gpuService.getGpu()), 0, 1, TimeUnit.SECONDS);
+		statsExecutor.scheduleAtFixedRate(() -> {
+			try {
+				updateStats(service.getMemory(), service.getCpu(), service.getNetworkTraffic(), gpuService.getGpu());
+			} catch (Exception e) {
+				logger.error(() -> "Error updating system stats", e);
+			}
+		}, 0, 1, TimeUnit.SECONDS);
+
 	}
 
 	private void updateStats(Memory memory, Cpu processor, Traffic traffic, Gpu gpu) {
+		if (shuttingDown.get()) {
+			return;
+		}
 		Platform.runLater(() -> {
+			if (shuttingDown.get()) {
+				return;
+			}
+
 			lblMemValue.setText(String.format("%s (%d%%)", FormatUtil.formatBytes(memory.used()),
 					Integer.valueOf(memory.percent())));
 			lblCpuValue.setText(String.format("%d%%", Integer.valueOf(processor.load())));
@@ -154,6 +174,17 @@ public class SysMonitorView implements Plugin {
 	@Override
 	public Map<String, String> getSettingsContributions() {
 		return Map.of(SETTING_NETWORK_IF, "0");
+	}
+
+	@Override
+	public synchronized void onShutdown() {
+		shuttingDown.set(true);
+		var executor = statsExecutor;
+		statsExecutor = null;
+		if (executor != null) {
+			logger.info(() -> "Shutting down sysmonitor stats executor");
+			executor.shutdownNow();
+		}
 	}
 
 }

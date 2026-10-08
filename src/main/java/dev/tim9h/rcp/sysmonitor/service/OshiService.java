@@ -13,7 +13,7 @@ public class OshiService implements SysMonitorService {
 	@Inject
 	private Settings settings;
 
-	private HardwareAbstractionLayer hal;
+	private final HardwareAbstractionLayer hal;
 
 	private long[] prevTicks;
 

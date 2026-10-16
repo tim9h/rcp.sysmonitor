@@ -12,6 +12,8 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.inject.Inject;
 
+import dev.tim9h.rcp.event.Event;
+import dev.tim9h.rcp.event.EventManager;
 import dev.tim9h.rcp.logging.InjectLogger;
 import dev.tim9h.rcp.spi.Gravity;
 import dev.tim9h.rcp.spi.Plugin;
@@ -45,6 +47,14 @@ public class SysMonitorView implements Plugin {
 
 	@Inject
 	private GpuMonitorService gpuService;
+
+	@Inject
+	private EventManager eventManager;
+
+	private static final int GPU_HIGH_LOAD_THRESHOLD = 50;
+
+	private volatile boolean gpuHighLoad;
+
 
 	private Label lblCpuValue;
 
@@ -152,6 +162,7 @@ public class SysMonitorView implements Plugin {
 		if (shuttingDown.get()) {
 			return;
 		}
+		publishGpuLoadTransition(gpu.utilization());
 		Platform.runLater(() -> {
 			if (shuttingDown.get()) {
 				return;
@@ -163,7 +174,16 @@ public class SysMonitorView implements Plugin {
 			lblUploadValue.setText(FormatUtils.formatBitsPerSecond(traffic.upBytes()));
 			lblDownloadValue.setText(FormatUtils.formatBitsPerSecond(traffic.downBytes()));
 			lblGpuValue.setText(String.format("%d%%", Integer.valueOf(gpu.utilization())));
+
 		});
+	}
+
+	private void publishGpuLoadTransition(int utilization) {
+		var highLoad = utilization >= GPU_HIGH_LOAD_THRESHOLD;
+		if (highLoad != gpuHighLoad) {
+			gpuHighLoad = highLoad;
+			eventManager.post(Event.EVENT_GPU_HIGH_LOAD, Boolean.toString(highLoad));
+		}
 	}
 
 	@Override

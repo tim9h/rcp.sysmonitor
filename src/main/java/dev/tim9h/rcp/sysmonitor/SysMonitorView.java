@@ -7,6 +7,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.logging.log4j.Logger;
 
@@ -71,6 +72,8 @@ public class SysMonitorView implements Plugin {
 	private ScheduledExecutorService statsExecutor;
 
 	private final AtomicBoolean shuttingDown = new AtomicBoolean();
+
+	private final AtomicLong statsUpdateSequence = new AtomicLong();
 
 	@Override
 	public String getName() {
@@ -148,7 +151,7 @@ public class SysMonitorView implements Plugin {
 			thread.setDaemon(true);
 			return thread;
 		});
-		statsExecutor.scheduleAtFixedRate(() -> {
+		statsExecutor.scheduleWithFixedDelay(() -> {
 			try {
 				updateStats(service.getMemory(), service.getCpu(), service.getNetworkTraffic(), gpuService.getGpu());
 			} catch (Exception e) {
@@ -162,20 +165,29 @@ public class SysMonitorView implements Plugin {
 		if (shuttingDown.get()) {
 			return;
 		}
+		var updateSequence = statsUpdateSequence.incrementAndGet();
 		publishGpuLoadTransition(gpu.utilization());
 		Platform.runLater(() -> {
-			if (shuttingDown.get()) {
+			if (shuttingDown.get() || updateSequence != statsUpdateSequence.get()) {
 				return;
 			}
 
 			lblMemValue.setText(String.format("%s (%d%%)", FormatUtil.formatBytes(memory.used()),
 					Integer.valueOf(memory.percent())));
-			lblCpuValue.setText(String.format("%d%%", Integer.valueOf(processor.load())));
-			lblUploadValue.setText(FormatUtils.formatBitsPerSecond(traffic.upBytes()));
-			lblDownloadValue.setText(FormatUtils.formatBitsPerSecond(traffic.downBytes()));
-			lblGpuValue.setText(String.format("%d%%", Integer.valueOf(gpu.utilization())));
+			lblCpuValue.setText(formatPercent(processor.load()));
+			lblUploadValue.setText(formatTraffic(traffic.upBytes()));
+			lblDownloadValue.setText(formatTraffic(traffic.downBytes()));
+			lblGpuValue.setText(formatPercent(gpu.utilization()));
 
 		});
+	}
+
+	private static String formatPercent(int value) {
+		return value < 0 ? "—" : String.format("%d%%", Integer.valueOf(value));
+	}
+
+	private static String formatTraffic(long bytes) {
+		return bytes < 0 ? "—" : FormatUtils.formatBitsPerSecond(bytes);
 	}
 
 	private void publishGpuLoadTransition(int utilization) {

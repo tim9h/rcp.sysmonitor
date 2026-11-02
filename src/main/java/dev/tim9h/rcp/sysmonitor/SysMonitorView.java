@@ -40,6 +40,8 @@ public class SysMonitorView implements Plugin {
 
 	private static final String CSS_CLASS_SECONDARY = "secondary";
 
+	private static final String CSS_CLASS_DETAIL = "detail-label";
+
 	@InjectLogger
 	private Logger logger;
 
@@ -55,7 +57,6 @@ public class SysMonitorView implements Plugin {
 	private static final int GPU_HIGH_LOAD_THRESHOLD = 50;
 
 	private volatile boolean gpuHighLoad;
-
 
 	private Label lblCpuValue;
 
@@ -104,15 +105,15 @@ public class SysMonitorView implements Plugin {
 		pane.getColumnConstraints().addAll(narrow, narrow, col, col, col);
 
 		var lblCpu = new Label("CPU");
-		lblCpu.getStyleClass().add(CSS_CLASS_SECONDARY);
+		lblCpu.getStyleClass().addAll(CSS_CLASS_SECONDARY, CSS_CLASS_DETAIL);
 		var lblGpu = new Label("GPU");
-		lblGpu.getStyleClass().add(CSS_CLASS_SECONDARY);
+		lblGpu.getStyleClass().addAll(CSS_CLASS_SECONDARY, CSS_CLASS_DETAIL);
 		var lblMem = new Label("Memory");
-		lblMem.getStyleClass().add(CSS_CLASS_SECONDARY);
+		lblMem.getStyleClass().addAll(CSS_CLASS_SECONDARY, CSS_CLASS_DETAIL);
 		var lblUp = new Label("Upload 🠕");
-		lblUp.getStyleClass().add(CSS_CLASS_SECONDARY);
+		lblUp.getStyleClass().addAll(CSS_CLASS_SECONDARY, CSS_CLASS_DETAIL);
 		var lblDown = new Label("Download 🠗");
-		lblDown.getStyleClass().add(CSS_CLASS_SECONDARY);
+		lblDown.getStyleClass().addAll(CSS_CLASS_SECONDARY, CSS_CLASS_DETAIL);
 
 		lblCpuValue = new Label("??%");
 		lblGpuValue = new Label("??%");

@@ -25,6 +25,7 @@ import dev.tim9h.rcp.sysmonitor.service.SysMonitorService;
 import dev.tim9h.rcp.sysmonitor.service.SysMonitorService.Cpu;
 import dev.tim9h.rcp.sysmonitor.service.SysMonitorService.Memory;
 import dev.tim9h.rcp.sysmonitor.service.SysMonitorService.Traffic;
+import dev.tim9h.rcp.util.SvgIconUtil;
 import javafx.application.Platform;
 import javafx.geometry.HPos;
 import javafx.scene.Node;
@@ -106,14 +107,24 @@ public class SysMonitorView implements Plugin {
 
 		var lblCpu = new Label("CPU");
 		lblCpu.getStyleClass().addAll(CSS_CLASS_SECONDARY, CSS_CLASS_DETAIL);
+		lblCpu.setGraphic(
+				SvgIconUtil.loadIcon(getClass().getResourceAsStream("/icons/cpu.svg"), "/icons/cpu.svg", lblCpu, 14));
 		var lblGpu = new Label("GPU");
 		lblGpu.getStyleClass().addAll(CSS_CLASS_SECONDARY, CSS_CLASS_DETAIL);
+		lblGpu.setGraphic(
+				SvgIconUtil.loadIcon(getClass().getResourceAsStream("/icons/cpu.svg"), "/icons/cpu.svg", lblGpu, 14));
 		var lblMem = new Label("Memory");
 		lblMem.getStyleClass().addAll(CSS_CLASS_SECONDARY, CSS_CLASS_DETAIL);
-		var lblUp = new Label("Upload 🠕");
+		lblMem.setGraphic(SvgIconUtil.loadIcon(getClass().getResourceAsStream("/icons/memory.svg"), "/icons/memory.svg",
+				lblMem, 14));
+		var lblUp = new Label("Upload");
 		lblUp.getStyleClass().addAll(CSS_CLASS_SECONDARY, CSS_CLASS_DETAIL);
-		var lblDown = new Label("Download 🠗");
+		lblUp.setGraphic(SvgIconUtil.loadIcon(getClass().getResourceAsStream("/icons/upload.svg"), "/icons/upload.svg",
+				lblUp, 14));
+		var lblDown = new Label("Download");
 		lblDown.getStyleClass().addAll(CSS_CLASS_SECONDARY, CSS_CLASS_DETAIL);
+		lblDown.setGraphic(SvgIconUtil.loadIcon(getClass().getResourceAsStream("/icons/download.svg"),
+				"/icons/download.svg", lblDown, 14));
 
 		lblCpuValue = new Label("??%");
 		lblGpuValue = new Label("??%");

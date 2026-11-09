@@ -39,7 +39,6 @@ public class NvidiaService implements GpuMonitorService {
 			}
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
-			logger.error(() -> "Interrupted while reading GPU utilization", e);
 			return new Gpu(-1);
 		} catch (IOException | NumberFormatException e) {
 			logger.error(() -> "Unable to read GPU utilization", e);
